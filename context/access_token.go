@@ -17,12 +17,10 @@ type RespAccessToken struct {
 
 func (ctx *Context) GetAccessToken() (accessToken string, err error) {
 	cacheKey := fmt.Sprintf("access_token_%s", ctx.AppID)
-	fmt.Printf("key: %s\n", cacheKey)
 	value := ctx.Cache.Get(cacheKey)
 
 	if value != nil {
 		accessToken = value.(string)
-		fmt.Printf("get token from cache: %s\n", accessToken)
 		return
 	}
 
