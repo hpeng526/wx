@@ -30,7 +30,7 @@ func NewRedisCache(server string) *RedisCache {
 }
 
 func (rc *RedisCache) Get(key string) interface{} {
-	conn := rc.Pool.Get()
+	conn := rc.getConn()
 	defer conn.Close()
 	var data string
 	data, err := redis.String(conn.Do("GET", key))
@@ -41,7 +41,7 @@ func (rc *RedisCache) Get(key string) interface{} {
 }
 
 func (rc *RedisCache) Set(key string, value interface{}, timeout time.Duration) error {
-	conn := rc.Pool.Get()
+	conn := rc.getConn()
 	defer conn.Close()
 	var s string
 	if v, ok := value.(string); ok {
@@ -52,7 +52,7 @@ func (rc *RedisCache) Set(key string, value interface{}, timeout time.Duration) 
 }
 
 func (rc *RedisCache) IsExist(key string) bool {
-	conn := rc.Pool.Get()
+	conn := rc.getConn()
 	defer conn.Close()
 	data, err := redis.Bool(conn.Do("EXISTS", key))
 	if err == nil {
@@ -62,8 +62,16 @@ func (rc *RedisCache) IsExist(key string) bool {
 }
 
 func (rc *RedisCache) Delete(key string) error {
-	conn := rc.Pool.Get()
+	conn := rc.getConn()
 	defer conn.Close()
 	_, err := conn.Do("DEL", key)
 	return err
+}
+
+func (rc *RedisCache) getConn() redis.Conn {
+	conn := rc.Pool.Get()
+	if conn.Err() != nil {
+		panic(conn.Err().Error())
+	}
+	return conn
 }
